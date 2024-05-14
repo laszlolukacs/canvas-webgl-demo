@@ -1,9 +1,12 @@
-    attribute vec4 position;
-    attribute vec4 color;
+#version 300 es
 
-    varying vec4 vColor;
+in vec4 position;
+in vec4 color;
 
-    void main() {
-      gl_Position = position;
-      vColor = color;
-    }
+uniform mat4 camera;
+out vec4 vColor;
+
+void main() {
+    gl_Position = camera * position;
+    vColor = color;
+}

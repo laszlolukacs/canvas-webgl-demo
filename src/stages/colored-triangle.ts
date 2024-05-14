@@ -1,6 +1,3 @@
-import vertexShaderSource from './shaders/modelview-color.vert?raw';
-import fragmentShaderSource from './shaders/passthrough-color.frag?raw';
-import { createPerspectiveMatrix } from './camera';
 
 main();
 
@@ -14,27 +11,30 @@ function main() {
 
     // vector layout: [posX, posY, posZ, colorR, colorG, colorB]
     const vertices = new Float32Array([
-      1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  // v0 white
-      -1.0, 1.0, 1.0, 1.0, 0.0, 1.0,  // v1 magenta
-      -1.0, -1.0, 1.0, 1.0, 0.0, 0.0,  // v2 red
-      1.0, -1.0, 1.0, 1.0, 1.0, 0.0,  // v3 yellow
-      1.0, -1.0, -1.0, 0.0, 1.0, 0.0,  // v4 green
-      1.0, 1.0, -1.0, 0.0, 1.0, 1.0,  // v5 cyan
-      -1.0, 1.0, -1.0, 0.0, 0.0, 1.0,  // v6 blue
-      -1.0, -1.0, -1.0, 0.0, 0.0, 0.0   // v7 black
+      0.0, 0.5, 0.0, 0.0, 1.0, 0.0, // point 1
+      -0.5, -0.5, 0.0, 0.0, 0.0, 1.0, // point 2
+      0.5, -0.5, 0.0, 1.0, 0.0, 0.0  // point 3
     ]);
 
-    const cubeIndices = new Uint8Array([
-      0, 1, 2, 0, 2, 3,
-      0, 3, 4, 0, 4, 5,
-      0, 5, 6, 0, 6, 1,
-      1, 6, 7, 1, 7, 2,
-      7, 4, 3, 7, 3, 2,
-      4, 7, 6, 4, 6, 5
-    ]);
-
-    setupBuffers(gl, vertices, cubeIndices);
+    setupBuffers(gl, vertices);
     const FLOAT_BYTES = vertices.BYTES_PER_ELEMENT;
+
+    const vertexShaderSource = `#version 300 es
+    in vec4 position;
+    in vec4 color;
+    out vec4 vColor;
+    void main() {
+      gl_Position = position;
+      vColor = color;
+    }`;
+
+    const fragmentShaderSource = `#version 300 es
+    precision highp float;
+    in vec4 vColor;
+    out vec4 fragColor;
+    void main() {
+    fragColor = vColor;
+    }`;
 
     let glProgram = compileShaders(gl, vertexShaderSource, fragmentShaderSource);
     if (glProgram == null) {
@@ -65,55 +65,22 @@ function main() {
     );
     gl.enableVertexAttribArray(color);
 
-    let cameraMatrix = createPerspectiveMatrix(30.0, glcanvas.width, glcanvas.height, 0.01, 100.0);
-    cameraMatrix.translateSelf(0.0, 0.0, -5.0);
-    cameraMatrix.rotateSelf(0.0, 33.0, 0.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
-    let model = gl.getUniformLocation(glProgram, "model");
-    let mvp = gl.getUniformLocation(glProgram, "mvp");
-    let cubeAngle = 0.0;
-
-    gl.enable(gl.DEPTH_TEST);
-
-    setInterval(() => {
-      cubeAngle += 0.5;
-
-      let modelMatrix = new DOMMatrix();
-      modelMatrix.rotateSelf(0, cubeAngle, -cubeAngle);
-      gl.uniformMatrix4fv(model, false, modelMatrix.toFloat32Array());
-
-      var mvpMatrix = new DOMMatrix(modelMatrix);
-      mvpMatrix.preMultiplySelf(cameraMatrix);
-      gl.uniformMatrix4fv(mvp, false, mvpMatrix.toFloat32Array());
-
-      gl.clearColor(0.0, 0.0, 0.0, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-      // the actual rendering
-      gl.drawElements(
-        gl.TRIANGLES,
-        36,
-        gl.UNSIGNED_BYTE,
-        0
-      );
-    })
+    // the actual rendering
+    gl.drawArrays(
+      gl.TRIANGLES, // mode
+      0,            // start
+      3             // count
+    );
   }
 }
 
-function setupBuffers(gl: Readonly<WebGL2RenderingContext>, vertices: Float32Array, cubeIndices: Uint8Array) {
-  let vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-  let indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
-}
-
-function loadTexture(gl: Readonly<WebGL2RenderingContext>, imageSource: string): WebGLTexture | null {
-  const texture = gl.createTexture;
-
-  return texture;
+function setupBuffers(gl: Readonly<WebGL2RenderingContext>, vertices: Float32Array) {
+    let buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 }
 
 function compileShaders(gl: Readonly<WebGL2RenderingContext>, vertSrc: string, fragSrc: string): WebGLProgram | null {
