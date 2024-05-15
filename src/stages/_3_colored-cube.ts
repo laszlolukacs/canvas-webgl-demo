@@ -1,6 +1,3 @@
-import vertexShaderSource from './shaders/passthrough-color.vert?raw';
-import fragmentShaderSource from './shaders/passthrough-color.frag?raw';
-import { createPerspectiveMatrix } from './camera';
 
 main();
 
@@ -36,6 +33,23 @@ function main() {
     setupBuffers(gl, vertices, cubeIndices);
     const FLOAT_BYTES = vertices.BYTES_PER_ELEMENT;
 
+    const vertexShaderSource = `#version 300 es
+    in vec4 position;
+    in vec4 color;
+    out vec4 vColor;
+    void main() {
+      gl_Position = position;
+      vColor = color;
+    }`;
+
+    const fragmentShaderSource = `#version 300 es
+    precision highp float;
+    in vec4 vColor;
+    out vec4 fragColor;
+    void main() {
+    fragColor = vColor;
+    }`;
+
     let glProgram = compileShaders(gl, vertexShaderSource, fragmentShaderSource);
     if (glProgram == null) {
       return;
@@ -66,15 +80,7 @@ function main() {
     gl.enableVertexAttribArray(color);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.DEPTH_TEST);
-
-    let camera = gl.getUniformLocation(glProgram, "camera");
-    let cameraMatrix = createPerspectiveMatrix(30.0, glcanvas.width, glcanvas.height, 0.01, 100.0);
-    cameraMatrix.translateSelf(0.0, 0.0, -5.0);
-    cameraMatrix.rotateSelf(0.0, 33.0, 0.0);
-
-    gl.uniformMatrix4fv(camera, false, cameraMatrix.toFloat32Array());
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     // the actual rendering
     gl.drawElements(
@@ -94,12 +100,6 @@ function setupBuffers(gl: Readonly<WebGL2RenderingContext>, vertices: Float32Arr
   let indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
-}
-
-function loadTexture(gl: Readonly<WebGL2RenderingContext>, imageSource: string): WebGLTexture | null {
-  const texture = gl.createTexture;
-
-  return texture;
 }
 
 function compileShaders(gl: Readonly<WebGL2RenderingContext>, vertSrc: string, fragSrc: string): WebGLProgram | null {

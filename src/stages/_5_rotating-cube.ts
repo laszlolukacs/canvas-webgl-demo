@@ -1,6 +1,6 @@
-import vertexShaderSource from './shaders/modelview-color.vert?raw';
-import fragmentShaderSource from './shaders/passthrough-color.frag?raw';
-import { createPerspectiveMatrix } from './camera';
+import vertexShaderSource from '../shaders/modelview-color.vert?raw';
+import fragmentShaderSource from '../shaders/passthrough-color.frag?raw';
+import { createPerspectiveMatrix } from '../camera';
 
 main();
 
@@ -69,29 +69,29 @@ function main() {
     cameraMatrix.translateSelf(0.0, 0.0, -5.0);
     cameraMatrix.rotateSelf(0.0, 33.0, 0.0);
 
-let model = gl.getUniformLocation(glProgram, "model");
-let mvp = gl.getUniformLocation(glProgram, "mvp");
-let cubeAngle = 0.0;
+    let model = gl.getUniformLocation(glProgram, "model");
+    let mvp = gl.getUniformLocation(glProgram, "mvp");
+    let cubeAngle = 0.0;
 
-gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.DEPTH_TEST);
 
-setInterval(() => {
-  cubeAngle += 0.5;
-  let modelMatrix = new DOMMatrix();
-  modelMatrix.rotateSelf(0, cubeAngle, -cubeAngle);
-  gl.uniformMatrix4fv(model, false, modelMatrix.toFloat32Array());
-  var mvpMatrix = new DOMMatrix(modelMatrix);
-  mvpMatrix.preMultiplySelf(cameraMatrix);
-  gl.uniformMatrix4fv(mvp, false, mvpMatrix.toFloat32Array());
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.drawElements(
-    gl.TRIANGLES,
-    36,
-    gl.UNSIGNED_BYTE,
-    0
-  );
-})
+    setInterval(() => {
+      cubeAngle += 0.5;
+      let modelMatrix = new DOMMatrix();
+      modelMatrix.rotateSelf(0, cubeAngle, -cubeAngle);
+      gl.uniformMatrix4fv(model, false, modelMatrix.toFloat32Array());
+      var mvpMatrix = new DOMMatrix(modelMatrix);
+      mvpMatrix.preMultiplySelf(cameraMatrix);
+      gl.uniformMatrix4fv(mvp, false, mvpMatrix.toFloat32Array());
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.drawElements(
+        gl.TRIANGLES,
+        36,
+        gl.UNSIGNED_BYTE,
+        0
+      );
+    })
   }
 }
 
@@ -103,12 +103,6 @@ function setupBuffers(gl: Readonly<WebGL2RenderingContext>, vertices: Float32Arr
   let indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
-}
-
-function loadTexture(gl: Readonly<WebGL2RenderingContext>, imageSource: string): WebGLTexture | null {
-  const texture = gl.createTexture;
-
-  return texture;
 }
 
 function compileShaders(gl: Readonly<WebGL2RenderingContext>, vertSrc: string, fragSrc: string): WebGLProgram | null {

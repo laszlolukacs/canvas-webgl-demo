@@ -1,7 +1,7 @@
-import vertexShaderSource from './shaders/textured-lighted.vert?raw';
-import fragmentShaderSource from './shaders/textured-lighted.frag?raw';
-import textureUrl from './textures/WebGL_texture.png'
-import { createPerspectiveMatrix } from './camera';
+import vertexShaderSource from '../shaders/textured-lighted.vert?raw';
+import fragmentShaderSource from '../shaders/textured-lighted.frag?raw';
+import textureUrl from '../textures/WebGL_texture.png'
+import { createPerspectiveMatrix } from '../camera';
 
 main();
 
@@ -167,8 +167,7 @@ function setupBuffers(gl: Readonly<WebGL2RenderingContext>, glProgram: Readonly<
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 }
 
-function loadTexture(gl: Readonly<WebGL2RenderingContext>, 
-  glProgram: Readonly<WebGLProgram>, imageSource: string): WebGLTexture | null {
+function loadTexture(gl: Readonly<WebGL2RenderingContext>, glProgram: Readonly<WebGLProgram>, imageSource: string): WebGLTexture | null {
   const texture = gl.createTexture();
   let sampler = gl.getUniformLocation(glProgram, "theSampler");
   let image = new Image();

@@ -1,7 +1,6 @@
-import vertexShaderSource from './shaders/textured-lighted.vert?raw';
-import fragmentShaderSource from './shaders/textured-lighted.frag?raw';
-import textureUrl from './textures/WebGL_texture.png'
-import { createPerspectiveMatrix } from './camera';
+import vertexShaderSource from '../shaders/colored-lighted.vert?raw';
+import fragmentShaderSource from '../shaders/colored-lighted.frag?raw';
+import { createPerspectiveMatrix } from '../camera';
 
 main();
 
@@ -19,35 +18,21 @@ function main() {
     }
 
     let vertices = new Float32Array([
-      1.0, 1.0, 1.0, 1.0, 1.0, //v1
-      -1.0, 1.0, 1.0, 0.0, 1.0, //v2
-      -1.0, -1.0, 1.0, 0.0, 0.0, //v3
-      1.0, -1.0, 1.0, 1.0, 0.0, //v3 -- front
+      1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, // front
+      1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, // right
+      1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, // up
+      -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, // left
+      -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, // down
+      1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0  // back
+    ]);
 
-      1.0, 1.0, 1.0, 1.0, 1.0, //v5
-      1.0, -1.0, 1.0, 0.0, 1.0, //v6
-      1.0, -1.0, -1.0, 0.0, 0.0, //v7
-      1.0, 1.0, -1.0, 1.0, 0.0, // v8 right
-
-      1.0, 1.0, 1.0, 1.0, 1.0,  //v9
-      1.0, 1.0, -1.0, 1.0, 0.0, // v10
-      -1.0, 1.0, -1.0, 0.0, 0.0, //v11
-      -1.0, 1.0, 1.0, 0.0, 1.0, // v12 up
-
-      -1.0, 1.0, 1.0, 1.0, 1.0, //v13
-      -1.0, 1.0, -1.0, 1.0, 0.0, //v14
-      -1.0, -1.0, -1.0, 0.0, 0.0, //v15
-      -1.0, -1.0, 1.0, 0.0, 1.0, // v16 left
-
-      -1.0, -1.0, -1.0, 0.0, 0.0, //v17
-       1.0, -1.0, -1.0, 1.0, 0.0, //v18
-       1.0, -1.0, 1.0, 1.0, 1.0, //v19
-       -1.0, -1.0, 1.0, 0.0, 1.0, //v20 down
-
-      1.0, -1.0, -1.0, 1.0, 0.0, //v21
-       -1.0, -1.0, -1.0, 0.0, 0.0, //v22
-        -1.0, 1.0, -1.0, 0.0, 1.0, //v23
-         1.0, 1.0, -1.0, 1.0, 1.0,  //v24 back
+    let colors = new Float32Array([
+      1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0,
+      1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0,
+      1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+      1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0
     ]);
 
     let normals = new Float32Array([
@@ -68,8 +53,7 @@ function main() {
       20, 21, 22, 20, 22, 23  // back
     ]);
 
-    setupBuffers(gl, glProgram, vertices, normals, cubeNormalIndices);
-    loadTexture(gl, glProgram, textureUrl);
+    setupBuffers(gl, glProgram, vertices, colors, normals, cubeNormalIndices);
 
     let cameraMatrix = createPerspectiveMatrix(30.0, glcanvas.width, glcanvas.height, 0.01, 100.0);
     cameraMatrix.translateSelf(0.0, 0.0, -5.0).rotateSelf(40, 0, 0).rotateSelf(0, -45, 0);
@@ -116,12 +100,10 @@ function main() {
   }
 }
 
-function setupBuffers(gl: Readonly<WebGL2RenderingContext>, glProgram: Readonly<WebGLProgram>, vertices: Float32Array, normals: Float32Array, indices: Uint16Array) {
+function setupBuffers(gl: Readonly<WebGL2RenderingContext>, glProgram: Readonly<WebGLProgram>, vertices: Float32Array, colors: Float32Array, normals: Float32Array, indices: Uint16Array) {
   let vertexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-  const FLOAT_BYTES = vertices.BYTES_PER_ELEMENT;
 
   // bind the [posX, posY, posZ] to the 'position' shader attribute
   let position = gl.getAttribLocation(glProgram, "position");
@@ -130,22 +112,26 @@ function setupBuffers(gl: Readonly<WebGL2RenderingContext>, glProgram: Readonly<
     3,
     gl.FLOAT,
     false,
-    FLOAT_BYTES * 5,
+    0,
     0
   );
   gl.enableVertexAttribArray(position);
 
-  // bind the [texCoordU, texCoordV] to the 'texCoord' shader attribute
-  let texCoord = gl.getAttribLocation(glProgram, "texCoord");
+  let colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+  // bind the [colorR, colorG, colorB] to the 'color' shader attribute
+  let color = gl.getAttribLocation(glProgram, "color");
   gl.vertexAttribPointer(
-    texCoord,
-    2,
+    color,
+    3,
     gl.FLOAT,
     false,
-    FLOAT_BYTES * 5,
-    FLOAT_BYTES * 3
+    0,
+    0
   );
-  gl.enableVertexAttribArray(texCoord);
+  gl.enableVertexAttribArray(color);
 
   let normalBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
@@ -165,36 +151,6 @@ function setupBuffers(gl: Readonly<WebGL2RenderingContext>, glProgram: Readonly<
   let indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-}
-
-function loadTexture(gl: Readonly<WebGL2RenderingContext>, 
-  glProgram: Readonly<WebGLProgram>, imageSource: string): WebGLTexture | null {
-  const texture = gl.createTexture();
-  let sampler = gl.getUniformLocation(glProgram, "theSampler");
-  let image = new Image();
-  image.src = imageSource;
-  image.onload = function(){
-
-    // Flip the image's y axis
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-  
-    // Enable texture 0
-    gl.activeTexture(gl.TEXTURE0);
-  
-    // Set the texture's target (2D or cubemap)
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-  
-    // Stretch/wrap options
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    
-    // Bind image to texture
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-    
-    // Pass texture 0 to the sampler
-    gl.uniform1i(sampler, 0);
-  };
-
-  return texture;
 }
 
 function compileShaders(gl: Readonly<WebGL2RenderingContext>, vertSrc: string, fragSrc: string): WebGLProgram | null {
