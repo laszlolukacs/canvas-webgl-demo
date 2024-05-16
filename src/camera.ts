@@ -1,3 +1,7 @@
+/*
+ * See LICENSE for details.
+ */
+
 export function createPerspectiveMatrix(fov: number, canvasWidth: number, canvasHeight: number, near: number, far: number): DOMMatrix {
     const fovInRadians = fov * Math.PI / 180;
     const aspect = canvasWidth / canvasHeight;

@@ -1,95 +1,104 @@
+/*
+ * See LICENSE for details.
+ */
 
 main();
 
 function main() {
   const glcanvas = document.getElementById("glcanvas") as HTMLCanvasElement;
-  if (glcanvas != null) {
-    const gl = glcanvas.getContext("webgl2");
-    if (gl == null) {
-      return;
-    }
-
-    // vector layout: [posX, posY, posZ, colorR, colorG, colorB]
-    const vertices = new Float32Array([
-      1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  // v0 white
-      -1.0, 1.0, 1.0, 1.0, 0.0, 1.0,  // v1 magenta
-      -1.0, -1.0, 1.0, 1.0, 0.0, 0.0,  // v2 red
-      1.0, -1.0, 1.0, 1.0, 1.0, 0.0,  // v3 yellow
-      1.0, -1.0, -1.0, 0.0, 1.0, 0.0,  // v4 green
-      1.0, 1.0, -1.0, 0.0, 1.0, 1.0,  // v5 cyan
-      -1.0, 1.0, -1.0, 0.0, 0.0, 1.0,  // v6 blue
-      -1.0, -1.0, -1.0, 0.0, 0.0, 0.0   // v7 black
-    ]);
-
-    const cubeIndices = new Uint8Array([
-      0, 1, 2, 0, 2, 3,
-      0, 3, 4, 0, 4, 5,
-      0, 5, 6, 0, 6, 1,
-      1, 6, 7, 1, 7, 2,
-      7, 4, 3, 7, 3, 2,
-      4, 7, 6, 4, 6, 5
-    ]);
-
-    setupBuffers(gl, vertices, cubeIndices);
-    const FLOAT_BYTES = vertices.BYTES_PER_ELEMENT;
-
-    const vertexShaderSource = `#version 300 es
-    in vec4 position;
-    in vec4 color;
-    out vec4 vColor;
-    void main() {
-      gl_Position = position;
-      vColor = color;
-    }`;
-
-    const fragmentShaderSource = `#version 300 es
-    precision highp float;
-    in vec4 vColor;
-    out vec4 fragColor;
-    void main() {
-    fragColor = vColor;
-    }`;
-
-    let glProgram = compileShaders(gl, vertexShaderSource, fragmentShaderSource);
-    if (glProgram == null) {
-      return;
-    }
-
-    // bind the [posX, posY, posZ] to the 'position' shader attribute
-    let position = gl.getAttribLocation(glProgram, "position");
-    gl.vertexAttribPointer(
-      position,         // shader attribute pointer
-      3,                // length
-      gl.FLOAT,         // type
-      false,            // normalize
-      FLOAT_BYTES * 6,  // stride (length of one section of the vector)
-      0                 // offset (starting position of this attribute in the vector section)
-    );
-    gl.enableVertexAttribArray(position);
-
-    // bind the [colorR, colorG, colorB] to the 'color' shader attribute
-    let color = gl.getAttribLocation(glProgram, "color");
-    gl.vertexAttribPointer(
-      color,            // shader attribute pointer
-      3,                // length
-      gl.FLOAT,         // type
-      false,            // normalize
-      FLOAT_BYTES * 6,  // stride (length of one section of the vector)
-      FLOAT_BYTES * 3   // offset (starting position of this attribute in the vector section)
-    );
-    gl.enableVertexAttribArray(color);
-
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    // the actual rendering
-    gl.drawElements(
-      gl.TRIANGLES,
-      36,
-      gl.UNSIGNED_BYTE,
-      0
-    );
+  if (glcanvas == null) {
+    console.error("HTML Canvas element was not found");
+    return;
   }
+
+  const gl = glcanvas.getContext("webgl2");
+  if (gl == null) {
+    console.error("Unable to create WebGL2 context");
+    return;
+  }
+
+  const vertexShaderSource = `#version 300 es
+  in vec4 position;
+  in vec4 color;
+  out vec4 vColor;
+  void main() {
+    gl_Position = position;
+    vColor = color;
+  }`;
+
+  const fragmentShaderSource = `#version 300 es
+  precision highp float;
+  in vec4 vColor;
+  out vec4 fragColor;
+  void main() {
+  fragColor = vColor;
+  }`;
+
+  let glProgram = compileShaders(gl, vertexShaderSource, fragmentShaderSource);
+  if (glProgram == null) {
+    console.error("Error during shader compilation, see the logs above");
+    return;
+  }
+
+  // vector layout: [posX, posY, posZ, colorR, colorG, colorB]
+  const vertices = new Float32Array([
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  // v0 white
+    -1.0, 1.0, 1.0, 1.0, 0.0, 1.0,  // v1 magenta
+    -1.0, -1.0, 1.0, 1.0, 0.0, 0.0,  // v2 red
+    1.0, -1.0, 1.0, 1.0, 1.0, 0.0,  // v3 yellow
+    1.0, -1.0, -1.0, 0.0, 1.0, 0.0,  // v4 green
+    1.0, 1.0, -1.0, 0.0, 1.0, 1.0,  // v5 cyan
+    -1.0, 1.0, -1.0, 0.0, 0.0, 1.0,  // v6 blue
+    -1.0, -1.0, -1.0, 0.0, 0.0, 0.0   // v7 black
+  ]);
+
+  const cubeIndices = new Uint8Array([
+    0, 1, 2, 0, 2, 3,
+    0, 3, 4, 0, 4, 5,
+    0, 5, 6, 0, 6, 1,
+    1, 6, 7, 1, 7, 2,
+    7, 4, 3, 7, 3, 2,
+    4, 7, 6, 4, 6, 5
+  ]);
+
+  setupBuffers(gl, vertices, cubeIndices);
+
+  const FLOAT_BYTES = vertices.BYTES_PER_ELEMENT;
+
+  // bind the [posX, posY, posZ] to the 'position' shader attribute
+  let position = gl.getAttribLocation(glProgram, "position");
+  gl.vertexAttribPointer(
+    position,         // shader attribute pointer
+    3,                // length
+    gl.FLOAT,         // type
+    false,            // normalize
+    FLOAT_BYTES * 6,  // stride (length of one section of the vector)
+    0                 // offset (starting position of this attribute in the vector section)
+  );
+  gl.enableVertexAttribArray(position);
+
+  // bind the [colorR, colorG, colorB] to the 'color' shader attribute
+  let color = gl.getAttribLocation(glProgram, "color");
+  gl.vertexAttribPointer(
+    color,            // shader attribute pointer
+    3,                // length
+    gl.FLOAT,         // type
+    false,            // normalize
+    FLOAT_BYTES * 6,  // stride (length of one section of the vector)
+    FLOAT_BYTES * 3   // offset (starting position of this attribute in the vector section)
+  );
+  gl.enableVertexAttribArray(color);
+
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  // the actual rendering
+  gl.drawElements(
+    gl.TRIANGLES,
+    36,
+    gl.UNSIGNED_BYTE,
+    0
+  );
 }
 
 function setupBuffers(gl: Readonly<WebGL2RenderingContext>, vertices: Float32Array, cubeIndices: Uint8Array) {
@@ -103,13 +112,6 @@ function setupBuffers(gl: Readonly<WebGL2RenderingContext>, vertices: Float32Arr
 }
 
 function compileShaders(gl: Readonly<WebGL2RenderingContext>, vertSrc: string, fragSrc: string): WebGLProgram | null {
-  if (gl === null
-    || vertSrc === null
-    || fragSrc === null
-  ) {
-    return null;
-  }
-
   let vertexShader = gl.createShader(gl.VERTEX_SHADER);
   if (vertexShader == null) {
     return null;
